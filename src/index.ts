@@ -10,7 +10,6 @@ import { RedisConfig, RedisStore, createRedisStore } from './redis'
 import { resolutions, sleep } from './time'
 import {
   Config,
-  getMarketByBaseSymbolAndKind,
   GroupConfig,
   MangoClient,
   PerpMarketConfig,
@@ -29,8 +28,7 @@ if (redisUrl.password !== '') {
 }
 
 const network = 'mainnet-beta'
-const clusterUrl =
-  process.env.RPC_ENDPOINT_URL || 'https://solana-api.projectserum.com'
+const clusterUrl = process.env.RPC_ENDPOINT_URL || 'https://solana-api.projectserum.com'
 const fetchInterval = process.env.INTERVAL ? parseInt(process.env.INTERVAL) : 30
 
 console.log({ clusterUrl, fetchInterval })
@@ -55,8 +53,7 @@ const nativeMarketsV3: Record<string, string> = {
   'COPE/USDC': '6fc7v3PmjZG9Lk2XTot6BywGyYLkBQuzuFKd4FpCsPxk',
   'SBR/USDC': 'HXBi8YBwbh4TXF6PjVw81m8Z3Cc4WBofvauj5SBFdgUs',
   'STEP/USDC': '97qCB4cAVSTthvJu3eNoEx6AY6DLuRDtCoPm5Tdyg77S',
-
-  /*
+  
   'CCAI/USDC': '7gZNLDbWE73ueAoHuAeFoSu7JqmorwCLpNTBXHtYSFTa',
   'FIDA/USDC': 'E14BKBhDWD4EuTkWj1ooZezesGxMW8LPCps4W5PuzZJo',
   'MER/USDC': 'G4LcexdCzzJUKZfqyVDQFzpkjhB1JoCNL8Kooxi9nJz5',
@@ -64,7 +61,7 @@ const nativeMarketsV3: Record<string, string> = {
   'SLRS/USDC': '2Gx3UfV831BAh8uQv1FKSPKS9yajfeeD8GJ4ZNb2o2YP',
   'SNY/USDC': 'DPfj2jYwPaezkCmUNm5SSYfkrkz8WFqwGLcxDDUsN3gA',
   'TULIP/USDC': '8GufnKq7YnXKhnB3WNhgy5PzU9uvHbaaRrZWQK6ixPxW',
-  */
+  
 }
 
 const symbolsByPk = Object.assign(
@@ -85,9 +82,7 @@ async function collectEventQueue(m: MarketConfig, r: RedisConfig) {
       programKey
     )
 
-    async function fetchTrades(
-      lastSeqNum?: number
-    ): Promise<[Trade[], number]> {
+    async function fetchTrades(lastSeqNum?: number): Promise<[Trade[], number]> {
       const now = Date.now()
       const accountInfo = await connection.getAccountInfo(
         market['_decoded'].eventQueue
@@ -136,12 +131,12 @@ async function collectEventQueue(m: MarketConfig, r: RedisConfig) {
         const [trades, currentSeqNum] = await fetchTrades(lastSeqNum)
         storeTrades(trades)
         store.storeNumber('LASTSEQ', currentSeqNum)
-      } catch (e) {
+      } catch (e: any) {
         notify(`collectEventQueue ${m.marketName} ${e.toString()}`)
       }
       await sleep({ Seconds: fetchInterval })
     }
-  } catch (e) {
+  } catch (e: any) {
     notify(`collectEventQueue ${m.marketName} ${e.toString()}`)
   }
 }
@@ -203,8 +198,7 @@ async function collectPerpEventQueue(r: RedisConfig, m: PerpMarketConfig) {
 
     if (events.length > 0) {
       const last = events[events.length - 1]
-      const latestSeqNum =
-        last.fill?.seqNum || last.liquidate?.seqNum || last.out?.seqNum
+      const latestSeqNum = last.fill?.seqNum || last.liquidate?.seqNum || last.out?.seqNum
       lastSeqNum = latestSeqNum
     }
 
@@ -226,7 +220,7 @@ async function collectPerpEventQueue(r: RedisConfig, m: PerpMarketConfig) {
       const [trades, currentSeqNum] = await fetchTrades(new BN(lastSeqNum || 0))
       storeTrades(trades)
       store.storeNumber('LASTSEQ', currentSeqNum.toString() as any)
-    } catch (err) {
+    } catch (err: any) {
       notify(`collectPerpEventQueue ${m.name} ${err.toString()}`)
     }
 
@@ -307,6 +301,8 @@ app.get('/tv/symbols', async (req, res) => {
   res.send(response)
 })
 
+//example http://localhost:5000/tv/history?symbol=SOL/USDC&resolution=1&from=1630443600&to=1633177190
+
 app.get('/tv/history', async (req, res) => {
   // parse
   const marketName = req.query.symbol as string
@@ -353,7 +349,7 @@ app.get('/tv/history', async (req, res) => {
     res.set('Cache-control', 'public, max-age=1')
     res.send(response)
     return
-  } catch (e) {
+  } catch (e: any) {
     notify(`tv/history ${marketName} ${e.toString()}`)
     const error = { s: 'error' }
     res.status(500).send(error)
@@ -398,7 +394,7 @@ app.get('/trades/address/:marketPk', async (req, res) => {
     res.set('Cache-control', 'public, max-age=5')
     res.send(response)
     return
-  } catch (e) {
+  } catch (e: any) {
     notify(`trades ${marketName} ${e.toString()}`)
     const error = { s: 'error' }
     res.status(500).send(error)
