@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Account, Commitment, Connection, PublicKey } from '@solana/web3.js'
 import { Market } from '@project-serum/serum'
 import cors from 'cors'
